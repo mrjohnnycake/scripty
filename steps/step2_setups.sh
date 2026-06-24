@@ -17,6 +17,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/deps.sh"
 source "$SCRIPT_DIR/../lib/ui.sh"
+source "$SCRIPT_DIR/../lib/installers.sh"
 
 # Guard: paru must exist
 deps::require_in_step "paru" "paru AUR helper" "Complete Step 1 first"
@@ -25,68 +26,67 @@ deps::require_in_step "paru" "paru AUR helper" "Complete Step 1 first"
 # ── Vivaldi ──────────────────────────────────────────────────────
 ui::section "Setup Vivaldi and open default pages"
 
-# Open first window for setup and a second window as the default set of tabs
-vivaldi
-sleep 3s
-xargs vivaldi --new-window < "$(dirname "$0")/variables/vivaldi-urls.txt"
-#vivaldi --new-window https://mail.google.com/mail/u/0/ https://calendar.google.com/calendar/u/0/r https://claude.ai/ https://messages.google.com/web https://start.mrjohnnycake.com
+install::run_cmd \
+  "Launch Vivaldi and open default tabs?" \
+  "Vivaldi setup" \
+  'vivaldi &&
+   sleep 3s &&
+   xargs vivaldi --new-window < "$SCRIPT_DIR/variables/vivaldi-urls.txt"'
 
 
 
+# ── GitHub CLI ─────────────────────────────────────────────────────
+ui::section "Setup GitHub CLI"
 
-
-
-Obsidian CLI
-
-
-
-
-
-
+install::run_cmd \
+  "Run the GitHub CLI setup?" \
+  "GitHub CLI setup" \
+  'gh auth login'
 
 
 
 # ── Dotfiles ───────────────────────────────────────────────
 ui::section "Remove and replace existing dotfiles"
 
-# Apps directory
-cd ~/Dotfiles/Apps
-rm -rf ~/.chirp
-rm -rf ~/.config/dolphinrc
-rm -rf ~/.local/share/user-places.xbel
-rm -rf ~/.config/equibop/settings
-rm -rf ~/.config/equibop/themes
-rm -rf ~/.config/equibop/settings.json
-rm -rf ~/.config/equibop/state.json
-rm -rf ~/.config/feishin/config.json
-rm -rf ~/.config/gramps
-rm -rf ~/.local/share/gramps
-rm -rf ~/.config/haruna
-rm -rf ~/.config/katerc
-rm -rf ~/.config/kate-externaltoolspluginrc
-rm -rf ~/.config/kitty
-rm -rf ~/.config/konversation.kmessagebox
-rm -rf ~/.config/konversation.notifyrc
-rm -rf ~/.config/konversationrc
-rm -rf ~/.config/lazygit
-rm -rf ~/.config/Numara/Local\ Storage
-rm -rf ~/.config/Numara/Session\ Storage
-rm -rf ~/.config/Numara/config
-#rm -rf ~/.config/Plexamp/window-state-plexamp-main.json
-rm -rf ~/.config/rofi
-rm -rf ~/.local/share/Shortwave/Shortwave.db
-rm -rf ~/.config/Signal\ Beta/ephemeral.json
-rm -rf ~/.config/transmission
-rm -rf ~/.config/zoomus.conf
-stow -t ~/ chirp dolphin equibop feishin gramps haruna kate kitty konversation lazygit newsflash numara rofi shortwave signal syncthing transmission zoom
-#stow -t ~/ easyeffects plexamp
+install::run_cmd \
+  "Remove conflicting configs and stow Apps dotfiles?" \
+  "Apps dotfiles" \
+  'cd ~/Dotfiles/Apps &&
+   rm -rf ~/.chirp &&
+   rm -rf ~/.config/dolphinrc &&
+   rm -rf ~/.local/share/user-places.xbel &&
+   rm -rf ~/.config/equibop/settings &&
+   rm -rf ~/.config/equibop/themes &&
+   rm -rf ~/.config/equibop/settings.json &&
+   rm -rf ~/.config/equibop/state.json &&
+   rm -rf ~/.config/feishin/config.json &&
+   rm -rf ~/.config/gramps &&
+   rm -rf ~/.local/share/gramps &&
+   rm -rf ~/.config/haruna &&
+   rm -rf ~/.config/katerc &&
+   rm -rf ~/.config/kate-externaltoolspluginrc &&
+   rm -rf ~/.config/kitty &&
+   rm -rf ~/.config/konversation.kmessagebox &&
+   rm -rf ~/.config/konversation.notifyrc &&
+   rm -rf ~/.config/konversationrc &&
+   rm -rf ~/.config/lazygit &&
+   rm -rf ~/.config/Numara/Local\ Storage &&
+   rm -rf ~/.config/Numara/Session\ Storage &&
+   rm -rf ~/.config/Numara/config &&
+   rm -rf ~/.config/rofi &&
+   rm -rf ~/.local/share/Shortwave/Shortwave.db &&
+   rm -rf ~/.config/Signal\ Beta/ephemeral.json &&
+   rm -rf ~/.config/transmission &&
+   rm -rf ~/.config/zoomus.conf &&
+   stow -t ~/ chirp dolphin equibop feishin gramps haruna kate kitty konversation lazygit newsflash numara rofi shortwave signal syncthing transmission zoom'
 
-
-cd ~/Dotfiles/Desktop/Dell/Scripts
-stow -t ~/ downloads-folder
-systemctl --user daemon-reload
-systemctl --user enable --now organize-downloads.timer
-
+install::run_cmd \
+  "Stow downloads-folder script and enable its timer?" \
+  "downloads-folder organizer" \
+  'cd ~/Dotfiles/Desktop/Dell/Scripts &&
+   stow -t ~/ downloads-folder &&
+   systemctl --user daemon-reload &&
+   systemctl --user enable --now organize-downloads.timer'
 
 ui::success "Personal dotfiles moved into position"
 
@@ -94,60 +94,43 @@ ui::success "Personal dotfiles moved into position"
 # ── 3. VPN Management ───────────────────────────────────────────────
 ui::section "Setup Networking Tweaks and VPN Connections"
 
-# Private Internet Access
-mkdir PIA
-cd PIA
-wget https://www.privateinternetaccess.com/openvpn/openvpn.zip
-unzip openvpn.zip
-echo "Enter your Private Internet Access username:"
-read PIA_USER
-PIA_PASS="$(systemd-ask-password "Enter your Private Internet Access password:")"
-nmcli connection import type openvpn file uk_manchester.ovpn
-nmcli connection modify uk_manchester +vpn.data username="${PIA_USER}"
-nmcli connection modify uk_manchester +vpn.secrets password="${PIA_PASS}"
-nmcli connection modify uk_manchester connection.id "PIA (uk_manchester)"
-cd ..
-rm -rf PIA
+install::run_cmd \
+  "Set up Private Internet Access (PIA) OpenVPN connection?" \
+  "PIA VPN setup" \
+  'mkdir -p "$HOME/PIA" &&
+   cd "$HOME/PIA" &&
+   wget https://www.privateinternetaccess.com/openvpn/openvpn.zip &&
+   unzip openvpn.zip &&
+   echo "Enter your Private Internet Access username:" &&
+   read PIA_USER &&
+   PIA_PASS="$(systemd-ask-password "Enter your Private Internet Access password:")" &&
+   nmcli connection import type openvpn file uk_manchester.ovpn &&
+   nmcli connection modify uk_manchester +vpn.data username="${PIA_USER}" &&
+   nmcli connection modify uk_manchester +vpn.secrets password="${PIA_PASS}" &&
+   nmcli connection modify uk_manchester connection.id "PIA (uk_manchester)" &&
+   cd "$HOME" &&
+   rm -rf "$HOME/PIA"'
 
-# WireGuard VPN
-sudo cp "$SCRIPT_DIR/../files/wg0.conf" /etc/wireguard/
-sudo chown root:root /etc/wireguard/wg0.conf
-wg_file='/etc/wireguard/wg0.conf'
-sudo nmcli connection import type wireguard file "$wg_file"
-sudo nmcli connection modify wg0 connection.id "Homelab VPN"
-sudo nmcli connection modify "Homelab VPN" connection.autoconnect no
-sudo nmcli connection down "Homelab VPN"
-sleep 5
+install::run_cmd \
+  "Import WireGuard VPN config from USB files?" \
+  "WireGuard VPN setup" \
+  'sudo cp "$SCRIPT_DIR/../files/wg0.conf" /etc/wireguard/ &&
+   sudo chown root:root /etc/wireguard/wg0.conf &&
+   wg_file="/etc/wireguard/wg0.conf" &&
+   sudo nmcli connection import type wireguard file "$wg_file" &&
+   sudo nmcli connection modify wg0 connection.id "Homelab VPN" &&
+   sudo nmcli connection modify "Homelab VPN" connection.autoconnect no &&
+   sudo nmcli connection down "Homelab VPN" &&
+   sleep 5'
 
-# WiFi and Ethernet script (shuts off wi-fi when ethernet is connected)
-sudo tee /etc/NetworkManager/dispatcher.d/70-wifi-wired-exclusive.sh > /dev/null << "EOF"
-#!/bin/bash
-export LC_ALL=C
-
-enable_disable_wifi ()
-{
-    result=$(nmcli dev | grep "ethernet" | grep -w "connected")
-    if [ -n "$result" ]; then
-        nmcli radio wifi off
-    else
-        nmcli radio wifi on
-    fi
-}
-
-if [ "$2" = "up" ]; then
-    enable_disable_wifi
-fi
-
-if [ "$2" = "down" ]; then
-    enable_disable_wifi
-fi
-EOF
-
-sudo chmod 744 /etc/NetworkManager/dispatcher.d/70-wifi-wired-exclusive.sh
-sudo systemctl restart NetworkManager
-
-# Let the wi-fi come back up before continuing
-sleep 10
+install::run_cmd \
+  "Install wifi/wired-exclusive NetworkManager dispatcher script?" \
+  "wifi-wired-exclusive dispatcher" \
+  'sudo cp "$SCRIPT_DIR/../files/70-wifi-wired-exclusive.sh" /etc/NetworkManager/dispatcher.d/70-wifi-wired-exclusive.sh &&
+   sudo chown root:root /etc/NetworkManager/dispatcher.d/70-wifi-wired-exclusive.sh &&
+   sudo chmod 744 /etc/NetworkManager/dispatcher.d/70-wifi-wired-exclusive.sh &&
+   sudo systemctl restart NetworkManager &&
+   sleep 10'
 
 ui::success "Networking managed"
 
@@ -156,47 +139,44 @@ ui::success "Networking managed"
 # ── 3. Fingerprint Setup ────────────────────────────────────
 ui::section "Fingerprint setup"
 
-fprintd-enroll --finger right-index-finger $USER
-
-sudo cp /usr/lib/pam.d/polkit-1 /etc/pam.d/polkit-1
-
-awk 'NR==3{print "auth sufficient pam_fprintd.so"; print ""} 1' /etc/pam.d/polkit-1 > tmp && sudo mv tmp /etc/pam.d/polkit-1
+install::run_cmd \
+  "Enroll fingerprint and enable it for polkit prompts?" \
+  "Fingerprint setup" \
+  'fprintd-enroll --finger right-index-finger "$USER" &&
+   sudo cp /usr/lib/pam.d/polkit-1 /etc/pam.d/polkit-1 &&
+   awk '"'"'NR==3{print "auth sufficient pam_fprintd.so"; print ""} 1'"'"' /etc/pam.d/polkit-1 > /tmp/polkit-1.tmp &&
+   sudo mv /tmp/polkit-1.tmp /etc/pam.d/polkit-1'
 
 ui::success "Fingerprint setup complete"
+
 
 
 
 # ── 3. Clean-Up ───────────────────────────────────────────────
 ui::section "Basic Housekeeping"
 
-# Update tealdeer cache
-tldr -u
+install::run_cmd \
+  "Update tealdeer cache?" \
+  "tealdeer cache update" \
+  'tldr -u'
 
-# Delete unused files
-
-
-Check that these exist in new setup before removing
-
-#sudo rm /usr/bin/kwrite
-#sudo rm /usr/bin/kwriteconfig5
-#sudo rm /usr/bin/kwriteconfig6
-sudo rm /usr/share/applications/assistant.desktop
-sudo rm /usr/share/applications/designer.desktop
-sudo rm /usr/share/applications/java-java-openjdk.desktop
-sudo rm /usr/share/applications/jconsole-java-openjdk.desktop
-sudo rm /usr/share/applications/jshell-java-openjdk.desktop
-sudo rm /usr/share/applications/linguist.desktop
-sudo rm /usr/share/applications/org.cachyos.scx-manager.desktop
-#sudo rm /usr/share/applications/org.kde.kwrite.desktop
-sudo rm /usr/share/applications/qdbusviewer.desktop
-sudo rm /usr/share/applications/qv4l2.desktop
-sudo rm /usr/share/applications/qvidcap.desktop
-
-sleep 3
+# NOTE: Verify each of these still exists on a fresh install before
+# enabling — package contents change between CachyOS/distro versions.
+install::run_cmd \
+  "Remove unused .desktop entries?" \
+  "Remove unused desktop entries" \
+  'sudo rm -f /usr/share/applications/assistant.desktop
+   sudo rm -f /usr/share/applications/designer.desktop
+   sudo rm -f /usr/share/applications/java-java-openjdk.desktop
+   sudo rm -f /usr/share/applications/jconsole-java-openjdk.desktop
+   sudo rm -f /usr/share/applications/jshell-java-openjdk.desktop
+   sudo rm -f /usr/share/applications/linguist.desktop
+   sudo rm -f /usr/share/applications/org.cachyos.scx-manager.desktop
+   sudo rm -f /usr/share/applications/qdbusviewer.desktop
+   sudo rm -f /usr/share/applications/qv4l2.desktop
+   sudo rm -f /usr/share/applications/qvidcap.desktop'
 
 ui::success "Housekeeping finished"
-
-sleep 1
 
 # ── 4. ── ADD YOUR COMMANDS HERE ─────────────────────────────────
 

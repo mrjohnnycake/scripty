@@ -11,14 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../lib/deps.sh"
 source "$SCRIPT_DIR/../lib/ui.sh"
-
-
-
-
-ORIGINAL SCRIPT COMMANDS ARE AT THE BOTTOM OF THE FILE
-
-
-
+source "$SCRIPT_DIR/../lib/installers.sh"
 
 
 # ── 1. Enable system services ────────────────────────────────────
@@ -52,33 +45,31 @@ ui::section "User groups"
 # sudo usermod -aG video,audio,input "$USER"
 # ui::success "User groups updated"
 
-# ── 6. ── ADD YOUR COMMANDS HERE ─────────────────────────────────
+# ── 6. Sudo / root environment ───────────────────────────────────
+ui::section "Sudo and root shell environment"
+
+install::run_cmd \
+  "Back up /etc/sudoers and remove sudo password requirement?" \
+  "Passwordless sudo" \
+  'sudo cp /etc/sudoers /root/sudoers.bak
+   echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo EDITOR="tee -a" visudo'
+
+install::run_cmd \
+  "Reset root .bashrc to your custom version?" \
+  "Root .bashrc" \
+  'sudo rm -f /root/.bashrc
+   sudo cp "$HOME/.bashrc" /root/.bashrc'
+
+install::run_cmd \
+  "Symlink root Neovim config to your user config?" \
+  "Root Neovim config" \
+  'sudo mkdir -p /root/.config
+   sudo ln -sf "$HOME/.config/nvim" /root/.config/nvim'
+
+# ── 7. ── ADD YOUR COMMANDS HERE ─────────────────────────────────
 
 ui::success "Step 3 complete — all steps finished!"
 ui::info   "You may want to reboot for all changes to take full effect."
-
-
-
-
-#################################################################################
-
-#################################################################################
-
-
-
-# Remove sudo password requirement
-cp /etc/sudoers /root/sudoers.bak
-visudo
-
-# Set root bash environment
-rm /root/.bashrc
-nano /root/.bashrc
-
-# neovim
-mkdir .config
-ln -s /home/barkeep/.config/nvim /root/.config/nvim
-exec bash
-nvim
 
 
 

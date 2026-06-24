@@ -200,18 +200,11 @@ main::reset_menu() {
   esac
 }
 
-# ── Entry ──────────────────────────────────────────────────────
-main::init
-main::open_helper
-main::menu
-
 # ── Installer helper note ───────────────────────────────────────
-# Opens installer-helper.md in a new terminal window using cat so
+# Opens installer-helper.md in a new terminal window using kwrite so
 # it stays visible while you work through the menu.
-# Bash requires functions to be defined before they are called, but
-# since open_helper is called from the entry block at the bottom of
-# this file, the definition must come after — so we define it here
-# and it is available because bash reads the whole file first.
+# Bash executes top-to-bottom and doesn't hoist function definitions,
+# so this must be defined before the Entry block below calls it.
 main::open_helper() {
   local helper="$SCRIPT_DIR/files/installer-helper.md"
   if [[ ! -f "$helper" ]]; then
@@ -221,3 +214,8 @@ main::open_helper() {
 
   kwrite "$helper" &
 }
+
+# ── Entry ──────────────────────────────────────────────────────
+main::init
+main::open_helper
+main::menu

@@ -39,10 +39,10 @@ if ! command -v paru &>/dev/null; then
     "Install paru (AUR helper)?" \
     "paru" \
     'sudo pacman -S --needed --noconfirm base-devel git &&
-     local_tmp=$(mktemp -d) &&
-     git clone https://aur.archlinux.org/paru.git "$local_tmp/paru" &&
-     (cd "$local_tmp/paru" && makepkg -si --noconfirm) &&
-     rm -rf "$local_tmp"'
+     tmp_dir=$(mktemp -d) &&
+     git clone https://aur.archlinux.org/paru.git "$tmp_dir/paru" &&
+     (cd "$tmp_dir/paru" && makepkg -si --noconfirm) &&
+     rm -rf "$tmp_dir"'
 else
   ui::info "paru already installed, skipping"
 fi
@@ -67,7 +67,6 @@ ui::section "Core packages"
 # `fisher` is a plugin system for fish shell
 # `fprintd` is for fingerprint authenication
 # `fuse` is for AppImages
-# `gwenview-no-purpose` is a stripped down version because the original wants to install a bunch of unnecessary dependencies
 # `hyprpolkitagent` is for 1Password authenication
 # `kcharselect` is a Unicode character viewer / selector
 # `konversation` is an IRC client used for finding ebooks
@@ -77,7 +76,6 @@ ui::section "Core packages"
 # `lsd` is a shell command to replace `ls`
 # `marksman` is a language server for Kate
 # `newsflash` is an RSS feed reader
-# `okular-no-purpose` is a stripped down version of KDE's PDF viewer without all the unnecessary dependencies
 # `p7zip` is for Lutris
 # `plasma-systemmonitor` is the system monitor that End-4 defaults to
 # `rmw` is a terminal app for sending files to the Trash instead of full deletion
@@ -108,6 +106,7 @@ CORE_PKGS=(
   fisher
   fuse
   gimp
+  github-cli
   gnome-chess
   gnome-mahjongg
   gnome-sudoku
@@ -199,16 +198,16 @@ install::run_cmd \
 install::run_cmd \
   "Stow the first set of Linux dotfiles (git nvim rmw scripts superfile tealdeer zoxide)?" \
   "Linux dotfiles" \
-  'cd ~/Dotfiles/Linux
+  'cd ~/Dotfiles/Linux &&
    stow -t ~/ fish git nvim personal rmw scripts starship superfile tealdeer zoxide'
 
 install::run_cmd \
   "Set up Syncthing and apply Stow configs?" \
   "Syncthing" \
-  'cd ~/Dotfiles/Apps
-   sudo systemctl enable --now syncthing@barkeep.service
-   sleep 5
-   rm /home/barkeep/.local/state/syncthing/config.xml
+  'cd ~/Dotfiles/Apps &&
+   sudo systemctl enable --now syncthing@"$USER".service &&
+   sleep 5 &&
+   rm "$HOME/.local/state/syncthing/config.xml" &&
    stow -t ~/ syncthing'
 
 
@@ -220,37 +219,37 @@ ui::section "GitHub installs"
 install::run_cmd \
   "Install MQTT Explorer?" \
   "mqtt-explorer" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs"
+  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
    ./mqtt-explorer.sh'
 
 install::run_cmd \
   "Install Numara?" \
   "numara" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs"
+  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
    ./numara.sh'
 
 install::run_cmd \
   "Install Plezy?" \
   "plezy" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs"
+  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
    ./plezy.sh'
 
 install::run_cmd \
   "Install rmw?" \
   "rmw" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs"
+  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
    ./rmw.sh'
 
 install::run_cmd \
   "Install SysD Manager?" \
   "sysd-manager" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs"
+  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
    ./sysd-manager.sh'
 
 install::run_cmd \
   "Install wgtray?" \
   "wgtray" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs"
+  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
    ./wgtray.sh'
 
 
@@ -267,15 +266,15 @@ ui::section "Hyprland Setup"
 install::run_cmd \
   "Install your personal Hyprland dotfiles?" \
   "Hyprland dotfiles" \
-  'cd "$HOME/Dotfiles/Desktop/Dell/Hyprland"
-   rm "$HOME/.config/illogical-impulse/config.json"
-   rm "$HOME/.config/hypr/hypridle.conf"
-   rm "$HOME/.config/hypr/custom/env.lua
-   rm "$HOME/.config/hypr/custom/execs.lua
-   rm "$HOME/.config/hypr/custom/general.lua
-   rm "$HOME/.config/hypr/custom/keybinds.lua
-   rm "$HOME/.config/hypr/custom/rules.lua
-   rm "$HOME/.config/hypr/custom/variables.lua
+  'cd "$HOME/Dotfiles/Desktop/Dell/Hyprland" &&
+   rm "$HOME/.config/illogical-impulse/config.json" &&
+   rm "$HOME/.config/hypr/hypridle.conf" &&
+   rm "$HOME/.config/hypr/custom/env.lua" &&
+   rm "$HOME/.config/hypr/custom/execs.lua" &&
+   rm "$HOME/.config/hypr/custom/general.lua" &&
+   rm "$HOME/.config/hypr/custom/keybinds.lua" &&
+   rm "$HOME/.config/hypr/custom/rules.lua" &&
+   rm "$HOME/.config/hypr/custom/variables.lua" &&
    stow -t ~/ hypr-end4'
 
 
@@ -285,9 +284,9 @@ ui::section "App setup"
 install::run_cmd \
   "Set up 1Password browser integration?" \
   "1Password" \
-  'sudo mkdir -p /etc/1password
-   echo "vivaldi" | sudo tee /etc/1password/custom_allowed_browsers
-   sudo chown root:root /etc/1password/custom_allowed_browsers
+  'sudo mkdir -p /etc/1password &&
+   echo "vivaldi" | sudo tee /etc/1password/custom_allowed_browsers &&
+   sudo chown root:root /etc/1password/custom_allowed_browsers &&
    sudo chmod 755 /etc/1password/custom_allowed_browsers'
 
 install::run_cmd \
@@ -302,19 +301,19 @@ ui::section "Home folder setup"
 install::run_cmd \
   "Set SSH permissions?" \
   "SSH permissions" \
-  'cp -r "$SCRIPT_DIR/../files/.ssh" "$HOME/"
-   chmod 600 ~/.ssh/*
+  'cp -r "$SCRIPT_DIR/../files/.ssh" "$HOME/" &&
+   chmod 600 ~/.ssh/* &&
    chmod 700 ~/.ssh'
 
 install::run_cmd \
   "Replace home dirs with symlinks to /mnt/Homer?" \
   "Home folder symlinks" \
-  'sudo rm -rf /home/barkeep/{Documents,Downloads,Music,Pictures,Projects,Public,Templates,Videos}
-  ln -s /mnt/Homer/Documents /home/barkeep/Documents
-  ln -s /mnt/Homer/Downloads /home/barkeep/Downloads
-  ln -s /mnt/Homer/Music /home/barkeep/Music
-  ln -s /mnt/Homer/Pictures /home/barkeep/Pictures
-  ln -s /mnt/Homer/Projects /home/barkeep/Projects
-  ln -s /mnt/Homer/Videos /home/barkeep/Videos'
+  'sudo rm -rf /home/"$USER"/{Documents,Downloads,Music,Pictures,Projects,Public,Templates,Videos} &&
+  ln -s /mnt/Homer/Documents /home/"$USER"/Documents &&
+  ln -s /mnt/Homer/Downloads /home/"$USER"/Downloads &&
+  ln -s /mnt/Homer/Music /home/"$USER"/Music &&
+  ln -s /mnt/Homer/Pictures /home/"$USER"/Pictures &&
+  ln -s /mnt/Homer/Projects /home/"$USER"/Projects &&
+  ln -s /mnt/Homer/Videos /home/"$USER"/Videos'
 
 ui::success "Step 1 complete — system will reboot."

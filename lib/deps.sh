@@ -12,7 +12,7 @@ _DEPS_REQUIRED=(
 
 _DEPS_OPTIONAL=(
   "jq|jq (better state management)|jq"
-  "kate|Kate|kate"
+  "kwrite|KWrite|kwrite"
 )
 
 # ── Check ────────────────────────────────────────────────────────
@@ -81,9 +81,8 @@ deps::check_usb_files() {
 
   # ── Skip if files already copied from a previous run ─────────
   # Presence of all five expected items means the USB step is done.
-  if [[ -f "$dest/wg0.conf" &&         -d "$dest/.ssh"     &&         -f "$dest/70-wifi-wired-exclusive.sh" &&         -f "$dest/installer-helper.md" &&         -d "$dest/Dotfiles" ]]; then
-    printf '  \e[0;32m  ✔ USB files already in place — skipping USB check.\e[0m
-'
+  if [[ -f "$dest/wg0.conf" && -d "$dest/.ssh" && -f "$dest/70-wifi-wired-exclusive.sh" && -f "$dest/installer-helper.md" && -d "$dest/Dotfiles" ]]; then
+    printf '  \e[0;32m  ✔ USB files already in place — skipping USB check.\e[0m\n'
     echo
     return 0
   fi
@@ -99,24 +98,19 @@ deps::check_usb_files() {
 
   if [[ -z "$docs_dir" ]]; then
     echo
-    printf '  \e[0;31m  ✖ Could not find a USB drive with a "Docs" folder.\e[0m
-'
-    printf '  \e[2m    Make sure your USB is plugged in and mounted, then re-run the script.\e[0m
-'
+    printf '  \e[0;31m  ✖ Could not find a USB drive with a "Docs" folder.\e[0m\n'
+    printf '  \e[2m    Make sure your USB is plugged in and mounted, then re-run the script.\e[0m\n'
     echo
     exit 1
   fi
 
-  printf '  \e[0;32m  ✔ Found Docs folder at: %s\e[0m
-' "$docs_dir"
+  printf '  \e[0;32m  ✔ Found Docs folder at: %s\e[0m\n' "$docs_dir"
   echo
 
   # ── Helper: fatal missing item ────────────────────────────────
   _deps::usb_missing() {
-    printf '  \e[0;31m  ✖ %s\e[0m
-' "$1"
-    printf '  \e[2m    Resolve this and re-run the script.\e[0m
-'
+    printf '  \e[0;31m  ✖ %s\e[0m\n' "$1"
+    printf '  \e[2m    Resolve this and re-run the script.\e[0m\n'
     echo
     exit 1
   }
@@ -131,20 +125,45 @@ deps::check_usb_files() {
     _deps::usb_missing "No .conf file found in Docs. Expected your WireGuard config."
   fi
 
-  local conf_file="${conf_files[0]}"
-  local conf_name
-  conf_name="$(basename "$conf_file")"
+  local conf_file
+  if [[ ${#conf_files[@]} -eq 1 ]]; then
+    conf_file="${conf_files[0]}"
+    local conf_name
+    conf_name="$(basename "$conf_file")"
 
-  printf '  \e[0;36m  Is \e[1m%s\e[0m\e[0;36m your WireGuard config file?\e[0m \e[2m[Y/n]\e[0m ' "$conf_name"
-  read -r answer </dev/tty
-  echo
-  if [[ -z "$answer" || "$answer" =~ ^[Yy]$ ]]; then
-    cp "$conf_file" "$dest/wg0.conf"
-    printf '  \e[0;32m  ✔ Copied as wg0.conf\e[0m
-'
+    printf '  \e[0;36m  Is \e[1m%s\e[0m\e[0;36m your WireGuard config file?\e[0m \e[2m[Y/n]\e[0m ' "$conf_name"
+    read -r answer </dev/tty
+    echo
+    if [[ -z "$answer" || "$answer" =~ ^[Yy]$ ]]; then
+      :
+    else
+      _deps::usb_missing "WireGuard config not confirmed. Cannot continue without it."
+    fi
   else
-    _deps::usb_missing "WireGuard config not confirmed. Cannot continue without it."
+    printf '  \e[0;36m  Multiple .conf files found. Which one is your WireGuard config?\e[0m\n'
+    echo
+    local i=1
+    for f in "${conf_files[@]}"; do
+      printf '    \e[0;36m[%s]\e[0m  %s\n' "$i" "$(basename "$f")"
+      ((i++))
+    done
+    echo
+
+    local conf_choice
+    while true; do
+      printf '  \e[2mEnter number [1-%s]:\e[0m ' "${#conf_files[@]}"
+      read -r conf_choice </dev/tty
+      if [[ "$conf_choice" =~ ^[0-9]+$ ]] && [[ "$conf_choice" -ge 1 ]] && [[ "$conf_choice" -le "${#conf_files[@]}" ]]; then
+        break
+      fi
+      printf '  \e[0;33m  Invalid choice, try again.\e[0m\n'
+    done
+
+    conf_file="${conf_files[$((conf_choice - 1))]}"
   fi
+
+  cp "$conf_file" "$dest/wg0.conf"
+  printf '  \e[0;32m  ✔ Copied "%s" as wg0.conf\e[0m\n' "$(basename "$conf_file")"
   echo
 
   # ── 2. .ssh folder ────────────────────────────────────────────
@@ -160,8 +179,7 @@ deps::check_usb_files() {
   fi
 
   cp -r "$ssh_src" "$dest/.ssh"
-  printf '  \e[0;32m  ✔ Copied .ssh folder (%s files)\e[0m
-' "$ssh_file_count"
+  printf '  \e[0;32m  ✔ Copied .ssh folder (%s files)\e[0m\n' "$ssh_file_count"
   echo
 
   # ── 3. 70-wifi-wired-exclusive.sh ────────────────────────────
@@ -171,8 +189,7 @@ deps::check_usb_files() {
   fi
 
   cp "$nm_script" "$dest/70-wifi-wired-exclusive.sh"
-  printf '  \e[0;32m  ✔ Copied 70-wifi-wired-exclusive.sh\e[0m
-'
+  printf '  \e[0;32m  ✔ Copied 70-wifi-wired-exclusive.sh\e[0m\n'
   echo
 
   # ── 4. Installer helper .md file ─────────────────────────────
@@ -185,13 +202,11 @@ deps::check_usb_files() {
     _deps::usb_missing "No .md files found in Docs. Expected your installer helper note."
   fi
 
-  printf '  \e[0;36m  Which file is your installer helper note?\e[0m
-'
+  printf '  \e[0;36m  Which file is your installer helper note?\e[0m\n'
   echo
   local i=1
   for f in "${md_files[@]}"; do
-    printf '    \e[0;36m[%s]\e[0m  %s
-' "$i" "$f"
+    printf '    \e[0;36m[%s]\e[0m  %s\n' "$i" "$f"
     ((i++))
   done
   echo
@@ -200,17 +215,15 @@ deps::check_usb_files() {
   while true; do
     printf '  \e[2mEnter number [1-%s]:\e[0m ' "${#md_files[@]}"
     read -r md_choice </dev/tty
-    if [[ "$md_choice" =~ ^[0-9]+$ ]] &&        [[ "$md_choice" -ge 1 ]] &&        [[ "$md_choice" -le "${#md_files[@]}" ]]; then
+    if [[ "$md_choice" =~ ^[0-9]+$ ]] && [[ "$md_choice" -ge 1 ]] && [[ "$md_choice" -le "${#md_files[@]}" ]]; then
       break
     fi
-    printf '  \e[0;33m  Invalid choice, try again.\e[0m
-'
+    printf '  \e[0;33m  Invalid choice, try again.\e[0m\n'
   done
 
   local selected_md="${md_files[$((md_choice - 1))]}"
   cp "$docs_dir/$selected_md" "$dest/installer-helper.md"
-  printf '  \e[0;32m  ✔ Copied "%s" as installer-helper.md\e[0m
-' "$selected_md"
+  printf '  \e[0;32m  ✔ Copied "%s" as installer-helper.md\e[0m\n' "$selected_md"
   echo
 
   # ── 5. Dotfiles folder ────────────────────────────────────────
@@ -226,12 +239,10 @@ deps::check_usb_files() {
   fi
 
   cp -r "$dotfiles_src" "$dest/Dotfiles"
-  printf '  \e[0;32m  ✔ Copied Dotfiles folder (%s items)\e[0m
-' "$dotfiles_count"
+  printf '  \e[0;32m  ✔ Copied Dotfiles folder (%s items)\e[0m\n' "$dotfiles_count"
   echo
 
-  printf '  \e[0;32m  ✔ All USB files copied to %s\e[0m
-' "$dest"
+  printf '  \e[0;32m  ✔ All USB files copied to %s\e[0m\n' "$dest"
   echo
 }
 
@@ -249,8 +260,7 @@ deps::check_end4() {
     if [[ -z "$answer" || "$answer" =~ ^[Yy]$ ]]; then
       bash <(curl -s https://ii.clsty.link/get)
       echo
-      printf '  \e[0;36m  ℹ End-4 installer launched. Re-run this script when it finishes.\e[0m
-'
+      printf '  \e[0;36m  ℹ End-4 installer launched. Re-run this script when it finishes.\e[0m\n'
       echo
       exit 0
     else

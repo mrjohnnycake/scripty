@@ -3,13 +3,13 @@
 #
 # Run this on a brand new machine with nothing set up yet:
 #
-#   bash <(curl -s https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/bootstrap.sh)
+#   bash <(curl -s https://raw.githubusercontent.com/mrjohnnycake/scripty/master/bootstrap.sh)
 #
 # It clones the full script repo to ~/.local/share/post-install
 # (or wherever you set DEST below) and then runs main.sh.
 #
 # ── EDIT THESE TWO LINES FOR YOUR REPO ───────────────────────────
-REPO_URL="https://github.com/YOUR_USERNAME/YOUR_REPO.git"
+REPO_URL="https://github.com/mrjohnnycake/scripty.git"
 BRANCH="main"
 # ──────────────────────────────────────────────────────────────────
 
@@ -29,7 +29,7 @@ read -rp "Is your USB drive (with the Docs folder) plugged in? [Y/n] " usb_answe
 if [[ -n "$usb_answer" && ! "$usb_answer" =~ ^[Yy]$ ]]; then
   echo
   echo "Plug in the USB drive, then re-run this command:"
-  echo "  bash <(curl -s https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/bootstrap.sh)"
+  echo "  bash <(curl -s https://raw.githubusercontent.com/mrjohnnycake/scripty/master/bootstrap.sh)"
   echo
   exit 1
 fi
@@ -50,18 +50,6 @@ if [[ -d "$DEST" ]]; then
 else
   echo "Cloning repo to $DEST ..."
   git clone --branch "$BRANCH" "$REPO_URL" "$DEST"
-fi
-
-echo
-echo "Before continuing — this script expects a USB drive plugged in"
-echo "with a 'Docs' folder containing your WireGuard config, .ssh keys,"
-echo "dotfiles, and other setup files."
-echo
-read -rp "Is the USB plugged in and ready? [Y/n] " usb_answer
-if [[ -n "$usb_answer" && ! "$usb_answer" =~ ^[Yy]$ ]]; then
-  echo
-  echo "Plug in the USB, then re-run this bootstrap command when ready."
-  exit 0
 fi
 
 echo

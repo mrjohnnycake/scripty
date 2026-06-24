@@ -71,9 +71,10 @@ chmod +x main.sh steps/*.sh
 1. **Run** `./main.sh` (or the bootstrap one-liner on a fresh machine)
 2. **Pre-checks run automatically, in order:**
    - **USB file check** — looks for a `Docs` folder on an attached USB
-     and copies your WireGuard config (renamed to `wg0.conf`), `.ssh`
-     folder, `70-wifi-wired-exclusive.sh`, an installer helper `.md`
-     file (you pick which one if there are several, renamed to
+     and copies your WireGuard config (you pick which one if there are
+     several, renamed to `wg0.conf`), `.ssh` folder,
+     `70-wifi-wired-exclusive.sh`, an installer helper `.md` file (you
+     pick which one if there are several, renamed to
      `installer-helper.md`), and the `Dotfiles` folder into `files/`.
      If these are already present from a previous run, this check is
      skipped automatically.
@@ -85,9 +86,9 @@ chmod +x main.sh steps/*.sh
      continue without it.
    - **System update offer** — prompts to run `sudo pacman -Syu`
      before continuing.
-3. `installer-helper.md` opens automatically in a separate `kitty`
-   window (`--hold`, so it stays open until you close it) so you have
-   your notes visible while working through the menu.
+3. `installer-helper.md` opens automatically in a separate `kwrite`
+   window so you have your notes visible while working through the
+   menu.
 4. **Main menu appears** → select **Step 1**
 5. Step 1 runs → if marked to reboot, you're asked **"Reboot now?"**
    — nothing reboots without confirmation
@@ -123,12 +124,45 @@ AUR_PKGS=(some-aur-pkg-bin)
 install::aur "Install AUR packages?" "${AUR_PKGS[@]}"
 
 # For anything else — git clones, curl installs, multi-line setup.
-# Use ; or a newline to chain multiple commands in sequence (no need
-# for && unless one command depends on the previous succeeding).
+# IMPORTANT: chain dependent lines with && (not ; or a bare newline).
+# install::run_cmd uses eval inside an `if`, which suspends `set -e`
+# for the whole block — so a failed `cd` or earlier command will NOT
+# stop later lines from running unless you chain with &&. A newline
+# only works safely for truly independent commands (e.g. several
+# unrelated `rm -rf` cleanup lines) where one failing shouldn't block
+# the rest.
 install::run_cmd \
   "Clone wg-tray from GitHub?" \
   "wg-tray" \
   'git clone https://github.com/example/wg-tray.git ~/.config/wg-tray'
+```
+
+**This bit me for real once, so it's worth spelling out exactly what
+goes wrong if you forget an `&&`:**
+
+```bash
+# BROKEN — only the cd is chained, everything after it is a bare newline:
+'cd ~/Dotfiles/Apps &&
+ rm -rf ~/.config/something
+ rm -rf ~/.config/something_else
+ stow -t ~/ whatever'
+```
+
+If `~/Dotfiles/Apps` doesn't exist yet, the `cd` fails — but `rm -rf`
+and `stow` still run anyway, just from whatever directory the script
+happened to be in (often `$HOME`). `install::run_cmd` will correctly
+report the block as failed (the broken chain means the `cd`'s own exit
+status is what `eval` ultimately sees), but by then the `rm -rf` calls
+have already executed somewhere you didn't intend. Always chain every
+line with `&&`, all the way to the last one, whenever a later line
+depends on an earlier one succeeding (especially a `cd`):
+
+```bash
+# CORRECT:
+'cd ~/Dotfiles/Apps &&
+ rm -rf ~/.config/something &&
+ rm -rf ~/.config/something_else &&
+ stow -t ~/ whatever'
 ```
 
 **To disable any `install::run_cmd` / `install::pacman` / `install::aur`
@@ -140,6 +174,20 @@ block without deleting it**, comment out every line of that call
 #   "Run script 3?" \
 #   "Script 3" \
 #   'echo "disabled for now"'
+```
+
+**Watch out for `chmod` on a glob that might contain a directory.**
+`chmod 600 ~/.ssh/*` (as used for the copied USB `.ssh` folder in Step
+1) is correct as long as `.ssh` only ever contains plain files. If you
+ever add a subdirectory in there — a `sockets/` folder, `config.d/`,
+whatever — `chmod 600` strips its execute bit too (`drw-------`),
+which makes it unreadable/un-`cd`-able even though the files inside
+keep whatever mode they had. If you add a subfolder, `chmod` files and
+directories separately instead:
+
+```bash
+find ~/.ssh -type f -exec chmod 600 {} +
+find ~/.ssh -type d -exec chmod 700 {} +
 ```
 
 **Dry-run mode** — walk through every prompt without installing or
@@ -217,7 +265,7 @@ less ~/.cache/main/main.log
 - `systemctl` (systemd)
 - `git` (only needed for the bootstrap one-liner — installed
   automatically if missing)
-- `kitty` (for the `installer-helper.md` popup window)
+- `kwrite` (for the `installer-helper.md` popup window)
 
 **Recommended:**
 - `jq` — for proper JSON state storage (`sudo pacman -S jq`)
@@ -225,6 +273,33 @@ less ~/.cache/main/main.log
   missing)
 
 No `dialog`, `whiptail`, `fzf`, or Python required. Pure bash.
+
+---
+
+## Hardcoded Personal Config — Read Before Reusing
+
+This repo was written for one specific person's machine and accounts.
+Several lines bake in names, paths, and a server choice that are
+**not generic** — if you're adapting this for your own setup (or
+someone else is), check these before running Steps 1–2:
+
+| File | Line(s) | What's hardcoded |
+|---|---|---|
+| `bootstrap.sh` | `REPO_URL`, comments | `mrjohnnycake/scripty` GitHub repo — point this at your own fork/clone |
+| `steps/step1_initial.sh` | `~/Dotfiles/Desktop/Dell/Hyprland` | Path assumes a machine named/profiled `Dell` in the Dotfiles repo |
+| `steps/step1_initial.sh` | `/mnt/Homer/*` symlinks | Replaces `Documents/Downloads/Music/Pictures/Projects/Videos` with symlinks to a specific NAS/mount named `Homer` — **destructive** (`rm -rf` first) if that mount isn't what you expect |
+| `steps/step1_initial.sh` | `chirp-next`, `1password` AUR comments | Personal install-method notes (Baofeng radio software, 1Password quirks) — harmless if irrelevant to you, just noise |
+| `steps/step2_setups.sh` | `~/Dotfiles/Desktop/Dell/Scripts` | Same `Dell`-profile path assumption as above |
+| `steps/step2_setups.sh` | PIA VPN block: `uk_manchester.ovpn` | Hardcoded to one Private Internet Access server/region — swap to your preferred PIA server filename |
+| `steps/step2_setups.sh` | `fprintd-enroll --finger right-index-finger` | Hardcodes which finger gets enrolled for fingerprint auth |
+| `variables/vivaldi-urls.txt` | `start.mrjohnnycake.com` | One of the tabs auto-opened by Step 2 is a personal start page |
+
+None of these will break the *script* for someone else — they'll just
+run against the wrong path/server/repo, usually failing loudly (a
+missing directory, an unknown VPN config file) rather than silently.
+The one to be most careful with is the `/mnt/Homer` symlink block,
+since it deletes the original folders before linking — make sure that
+mount is actually present and correct before confirming that prompt.
 
 ---
 
@@ -245,3 +320,11 @@ declare -a STEPS=(
 That's it — MAIN picks it up automatically. The Exit option in the
 main menu renumbers itself automatically based on how many steps
 exist.
+
+**Heads up if you ever go past 9 steps:** the main menu matches your
+choice with a `case "$choice" in [1-9])` glob in `main.sh`. That's a
+single-character pattern, so a 10th step (entered as `"10"`) won't
+match it — the input just falls through to the no-op default branch
+instead of running anything or showing an error. Fine at 3 steps, but
+worth knowing before you scale up. If you get there, swap the pattern
+for a numeric check instead, e.g. `[[ "$choice" =~ ^[0-9]+$ ]]`.
