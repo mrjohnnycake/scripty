@@ -137,6 +137,7 @@ CORE_PKGS=(
   shfmt
   shortwave
   signal-desktop
+  spotify-launcher
   sqlitebrowser
   sshpass
   sshs
@@ -253,7 +254,7 @@ install::run_cmd \
    ./wgtray.sh'
 
 
-# ── Hyprland plugins ─────────────────────────────────────────────
+# ── Hyprland ─────────────────────────────────────────────
 ui::section "Hyprland Setup"
 
 #install::run_cmd \
@@ -276,6 +277,14 @@ install::run_cmd \
    rm "$HOME/.config/hypr/custom/rules.lua" &&
    rm "$HOME/.config/hypr/custom/variables.lua" &&
    stow -t ~/ hypr-end4'
+
+install::run_cmd \
+  "Comment out lines in End-4 Hyprland Configs?" \
+  "End-4 Hyprland configs" \
+  'cd "$HOME/.scripts/hypr/updating/end-4_overwrites/scripts" &&
+   ./hypr-hyprland-general.sh &&
+   ./hypr-hyprland-keybinds.sh &&
+   ./hypr-hyprland-variables.sh'
 
 
 # ── App setup ────────────────────────────────────────────────────

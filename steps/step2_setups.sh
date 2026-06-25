@@ -78,7 +78,7 @@ install::run_cmd \
    rm -rf ~/.config/Signal\ Beta/ephemeral.json &&
    rm -rf ~/.config/transmission &&
    rm -rf ~/.config/zoomus.conf &&
-   stow -t ~/ chirp dolphin equibop feishin gramps haruna kate kitty konversation lazygit newsflash numara rofi shortwave signal syncthing transmission zoom'
+   stow -t ~/ chirp dolphin equibop feishin gramps haruna kate kitty konversation lazygit newsflash numara rofi shortwave signal transmission zoom'
 
 install::run_cmd \
   "Stow downloads-folder script and enable its timer?" \
