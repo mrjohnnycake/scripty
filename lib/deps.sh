@@ -81,7 +81,7 @@ deps::check_usb_files() {
 
   # ── Skip if files already copied from a previous run ─────────
   # Presence of all five expected items means the USB step is done.
-  if [[ -f "$dest/wg0.conf" && -d "$dest/.ssh" && -f "$dest/70-wifi-wired-exclusive.sh" && -f "$dest/installer-helper.md" && -d "$dest/Dotfiles" ]]; then
+  if [[ -f "$dest/wg0.conf" && -d "$dest/.ssh" && -f "$dest/70-wifi-wired-exclusive.sh" && -f "$dest/installer-helper.md" ]]; then
     printf '  \e[0;32m  ✔ USB files already in place — skipping USB check.\e[0m\n'
     echo
     return 0
@@ -224,22 +224,6 @@ deps::check_usb_files() {
   local selected_md="${md_files[$((md_choice - 1))]}"
   cp "$docs_dir/$selected_md" "$dest/installer-helper.md"
   printf '  \e[0;32m  ✔ Copied "%s" as installer-helper.md\e[0m\n' "$selected_md"
-  echo
-
-  # ── 5. Dotfiles folder ────────────────────────────────────────
-  local dotfiles_src="$docs_dir/Dotfiles"
-  if [[ ! -d "$dotfiles_src" ]]; then
-    _deps::usb_missing "No Dotfiles folder found in Docs."
-  fi
-
-  local dotfiles_count
-  dotfiles_count="$(find "$dotfiles_src" -mindepth 1 | wc -l)"
-  if [[ "$dotfiles_count" -eq 0 ]]; then
-    _deps::usb_missing "Dotfiles folder exists but is empty."
-  fi
-
-  cp -r "$dotfiles_src" "$dest/Dotfiles"
-  printf '  \e[0;32m  ✔ Copied Dotfiles folder (%s items)\e[0m\n' "$dotfiles_count"
   echo
 
   printf '  \e[0;32m  ✔ All USB files copied to %s\e[0m\n' "$dest"

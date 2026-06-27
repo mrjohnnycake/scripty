@@ -70,7 +70,7 @@ EOF
 )"
   echo " "
   echo
-  ui::pad_center "$(ui::color dim "CachyOS · Hyprland · END-4 · Post-Install Dotfiles")"
+  ui::pad_center "$(ui::color dim "CachyOS Hyprland w/ END-4 Dots Post-Installer")"
   echo
   ui::divider "═"
   echo

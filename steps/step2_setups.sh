@@ -34,15 +34,16 @@ install::run_cmd \
    xargs vivaldi --new-window < "$SCRIPT_DIR/variables/vivaldi-urls.txt"'
 
 
-
 # ── GitHub CLI ─────────────────────────────────────────────────────
-ui::section "Setup GitHub CLI"
+#ui::section "Setup GitHub CLI"
 
-install::run_cmd \
-  "Run the GitHub CLI setup?" \
-  "GitHub CLI setup" \
-  'gh auth login'
+#install::run_cmd \
+#  "Run the GitHub CLI setup?" \
+#  "GitHub CLI setup" \
+#  'gh auth login'
 
+
+# I DON'T KNOW IF AUTH NEEDS TO BE RUN SINCE I SAVED THE DOTFILES. IF IT'S WORKING PROPERLY AFTER THE NEXT INSTALL JUST DELETE THIS SECTION
 
 
 # ── Dotfiles ───────────────────────────────────────────────
@@ -51,7 +52,8 @@ ui::section "Remove and replace existing dotfiles"
 install::run_cmd \
   "Remove conflicting configs and stow Apps dotfiles?" \
   "Apps dotfiles" \
-  'cd ~/Dotfiles/Apps &&
+  'cd ~/Dotfiles/Desktop/Apps &&
+   rm -rf ~/.config/1Password/settings/settings.json &&
    rm -rf ~/.chirp &&
    rm -rf ~/.config/dolphinrc &&
    rm -rf ~/.local/share/user-places.xbel &&
@@ -69,22 +71,26 @@ install::run_cmd \
    rm -rf ~/.config/konversation.kmessagebox &&
    rm -rf ~/.config/konversation.notifyrc &&
    rm -rf ~/.config/konversationrc &&
-   rm -rf ~/.config/lazygit &&
+   rm -rf ~/.config/MQTT-Explorer/settings.json &&
    rm -rf ~/.config/Numara/Local\ Storage &&
    rm -rf ~/.config/Numara/Session\ Storage &&
    rm -rf ~/.config/Numara/config &&
+   rm -rf ~/.config/obsidian/obsidian.json &&
+   rm -rf ~/.config/pomodorolm/config.toml &&
    rm -rf ~/.config/rofi &&
    rm -rf ~/.local/share/Shortwave/Shortwave.db &&
-   rm -rf ~/.config/Signal\ Beta/ephemeral.json &&
+   rm -rf ~/.config/Signal/ephemeral.json &&
    rm -rf ~/.config/transmission &&
+   rm -rf ~/.config/wgtray/config.toml &&
    rm -rf ~/.config/zoomus.conf &&
-   stow -t ~/ chirp dolphin equibop feishin gramps haruna kate kitty konversation lazygit newsflash numara rofi shortwave signal transmission zoom'
+   stow -t ~/ 1password chirp dolphin equibop feishin gramps haruna kate kitty konversation mqtt-explorer numara obsidian pomodorolm rofi shortwave signal transmission wgtray zoom'
+   # stow -t ~/ newsflash
 
 install::run_cmd \
   "Stow downloads-folder script and enable its timer?" \
   "downloads-folder organizer" \
-  'cd ~/Dotfiles/Desktop/Dell/Scripts &&
-   stow -t ~/ downloads-folder &&
+  'cd ~/Dotfiles/Desktop/Hyprland-End4 &&
+   stow -t ~/ systemd &&
    systemctl --user daemon-reload &&
    systemctl --user enable --now organize-downloads.timer'
 

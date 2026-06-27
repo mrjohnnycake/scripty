@@ -126,7 +126,7 @@ CORE_PKGS=(
   lutris
   marksman
   neovim
-  newsflash
+  # newsflash
   obsidian
   okular
   partitionmanager
@@ -192,20 +192,36 @@ install::aur "Install AUR packages?" "${AUR_PKGS[@]}"
 ui::section "Dotfiles"
 
 install::run_cmd \
-  "Copy Dotfiles folder to \$HOME?" \
-  "Dotfiles placement" \
-  'cp -r "$SCRIPT_DIR/../files/Dotfiles" "$HOME/Dotfiles"'
+  "Copy SSH files over to \$HOME?" \
+  "Copy SSH files" \
+  'sudo mkdir -p /media/usb &&
+   sudo mount UUID="2238-ADA8" /media/usb &&
+   cp -r /media/usb/Docs/.ssh &&
+   chmod 600 ~/.ssh/* &&
+   chmod 700 ~/.ssh'
+
+install::run_cmd \
+  "Pull the Dotfiles repo to \$HOME?" \
+  "Dotfiles repo download" \
+  'GIT_SSH_COMMAND="ssh -i /home/barkeep/.ssh/github-administrator" git clone git@github.com:mrjohnnycake/hyprland-dms-dots.git &&
+  mv ~/hyprland-dms-dots ~/Dotfiles'
+
+#install::run_cmd \
+#  "Copy Dotfiles folder to \$HOME?" \
+#  "Dotfiles placement" \
+#  'cp -r "$SCRIPT_DIR/../files/Dotfiles" "$HOME/Dotfiles"'
 
 install::run_cmd \
   "Stow the first set of Linux dotfiles (git nvim rmw scripts superfile tealdeer zoxide)?" \
   "Linux dotfiles" \
   'cd ~/Dotfiles/Linux &&
-   stow -t ~/ fish git nvim personal rmw scripts starship superfile tealdeer zoxide'
+   rm -rf ~/.config/lazygit &&
+   stow -t ~/ fish git github-cli lazygit nvim rmw superfile tealdeer zoxide'
 
 install::run_cmd \
   "Set up Syncthing and apply Stow configs?" \
   "Syncthing" \
-  'cd ~/Dotfiles/Apps &&
+  'cd ~/Dotfiles/Desktop/Apps &&
    sudo systemctl enable --now syncthing@"$USER".service &&
    sleep 5 &&
    rm "$HOME/.local/state/syncthing/config.xml" &&
@@ -220,37 +236,37 @@ ui::section "GitHub installs"
 install::run_cmd \
   "Install MQTT Explorer?" \
   "mqtt-explorer" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
+  'cd "$HOME/Dotfiles/Desktop/Scripts/desktop/.scripts/desktop/github-installs/apps" &&
    ./mqtt-explorer.sh'
 
 install::run_cmd \
   "Install Numara?" \
   "numara" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
+  'cd "$HOME/Dotfiles/Desktop/Scripts/desktop/.scripts/desktop/github-installs/apps" &&
    ./numara.sh'
 
 install::run_cmd \
   "Install Plezy?" \
   "plezy" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
+  'cd "$HOME/Dotfiles/Desktop/Scripts/desktop/.scripts/desktop/github-installs/apps" &&
    ./plezy.sh'
 
 install::run_cmd \
   "Install rmw?" \
   "rmw" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
+  'cd "$HOME/Dotfiles/Desktop/Scripts/desktop/.scripts/desktop/github-installs/apps" &&
    ./rmw.sh'
 
 install::run_cmd \
   "Install SysD Manager?" \
   "sysd-manager" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
+  'cd "$HOME/Dotfiles/Desktop/Scripts/desktop/.scripts/desktop/github-installs/apps" &&
    ./sysd-manager.sh'
 
 install::run_cmd \
   "Install wgtray?" \
   "wgtray" \
-  'cd "$HOME/Dotfiles/Linux/scripts/.scripts/github-installs" &&
+  'cd "$HOME/Dotfiles/Desktop/Scripts/desktop/.scripts/desktop/github-installs/apps" &&
    ./wgtray.sh'
 
 
@@ -267,7 +283,7 @@ ui::section "Hyprland Setup"
 install::run_cmd \
   "Install your personal Hyprland dotfiles?" \
   "Hyprland dotfiles" \
-  'cd "$HOME/Dotfiles/Desktop/Dell/Hyprland" &&
+  'cd "$HOME/Dotfiles/Desktop/Hyprland-End4" &&
    rm "$HOME/.config/illogical-impulse/config.json" &&
    rm "$HOME/.config/hypr/hypridle.conf" &&
    rm "$HOME/.config/hypr/custom/env.lua" &&
@@ -276,16 +292,15 @@ install::run_cmd \
    rm "$HOME/.config/hypr/custom/keybinds.lua" &&
    rm "$HOME/.config/hypr/custom/rules.lua" &&
    rm "$HOME/.config/hypr/custom/variables.lua" &&
-   stow -t ~/ hypr-end4'
+   stow -t ~/ hyprland'
 
 install::run_cmd \
   "Comment out lines in End-4 Hyprland Configs?" \
   "End-4 Hyprland configs" \
-  'cd "$HOME/.scripts/hypr/updating/end-4_overwrites/scripts" &&
+  'cd "$HOME/Dotfiles/Desktop/Scripts/desktop/.scripts/desktop/hypr/updating/end-4_overwrites/scripts" &&
    ./hypr-hyprland-general.sh &&
    ./hypr-hyprland-keybinds.sh &&
    ./hypr-hyprland-variables.sh'
-
 
 # ── App setup ────────────────────────────────────────────────────
 ui::section "App setup"
@@ -306,13 +321,6 @@ install::run_cmd \
 
 # ── Home folder ──────────────────────────────────────────────────
 ui::section "Home folder setup"
-
-install::run_cmd \
-  "Set SSH permissions?" \
-  "SSH permissions" \
-  'cp -r "$SCRIPT_DIR/../files/.ssh" "$HOME/" &&
-   chmod 600 ~/.ssh/* &&
-   chmod 700 ~/.ssh'
 
 install::run_cmd \
   "Replace home dirs with symlinks to /mnt/Homer?" \
