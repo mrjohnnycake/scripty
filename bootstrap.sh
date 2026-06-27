@@ -10,7 +10,7 @@
 #
 # ── EDIT THESE TWO LINES FOR YOUR REPO ───────────────────────────
 REPO_URL="https://github.com/mrjohnnycake/scripty.git"
-BRANCH="main"
+BRANCH="master"
 # ──────────────────────────────────────────────────────────────────
 
 set -euo pipefail
