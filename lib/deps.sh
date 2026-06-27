@@ -47,10 +47,10 @@ deps::check() {
     if ! command -v "$cmd" &>/dev/null; then
       echo
       printf '\e[0;33m  ⚠ Optional dependency not found: %s\e[0m\n' "$name"
-      read -rp $'  \e[2mInstall it now? [y/N]\e[0m ' answer
+      read -rp $'  \e[2mInstall it now? [y/N]\e[0m ' answer </dev/tty
       echo
       if [[ "$answer" =~ ^[Yy]$ ]]; then
-        sudo pacman -S --noconfirm "$cmd"
+        sudo pacman -S --needed --noconfirm "$pacman_cmd"
         if command -v "$cmd" &>/dev/null; then
           printf '\e[0;32m  ✔ %s installed.\e[0m\n' "$name"
         else
@@ -81,7 +81,7 @@ deps::check_usb_files() {
 
   # ── Skip if files already copied from a previous run ─────────
   # Presence of all five expected items means the USB step is done.
-  if [[ -f "$dest/wg0.conf" && -d "$dest/.ssh" && -f "$dest/70-wifi-wired-exclusive.sh" && -f "$dest/installer-helper.md" ]]; then
+  if [[ -f "$dest/wg0.conf" && -d "$dest/.ssh" && -f "$dest/70-wifi-wired-exclusive.sh" && -f "$dest/installer-helper.md" && -f "$dest/.gitconfig" ]]; then
     printf '  \e[0;32m  ✔ USB files already in place — skipping USB check.\e[0m\n'
     echo
     return 0
@@ -226,6 +226,16 @@ deps::check_usb_files() {
   printf '  \e[0;32m  ✔ Copied "%s" as installer-helper.md\e[0m\n' "$selected_md"
   echo
 
+  # ── 5. .gitconfig file ────────────────────────────────────────
+  local gitconfig_src="$docs_dir/.gitconfig"
+  if [[ ! -f "$gitconfig_src" ]]; then
+    _deps::usb_missing ".gitconfig not found in Docs."
+  fi
+
+  cp "$gitconfig_src" "$dest/.gitconfig"
+  printf '  \e[0;32m  ✔ Copied .gitconfig\e[0m\n'
+  echo
+
   printf '  \e[0;32m  ✔ All USB files copied to %s\e[0m\n' "$dest"
   echo
 }
@@ -239,7 +249,7 @@ deps::check_end4() {
     echo
     printf '  \e[0;33m  ⚠ It looks like you haven'"'"'t run the End-4 Dotfiles Installer yet.\e[0m\n'
     printf '  \e[2m    Would you like me to open it now?\e[0m \e[2m[Y/n]\e[0m '
-    read -r answer
+    read -r answer </dev/tty
     echo
     if [[ -z "$answer" || "$answer" =~ ^[Yy]$ ]]; then
       bash <(curl -s https://ii.clsty.link/get)
@@ -264,7 +274,7 @@ deps::offer_sysupdate() {
   printf '\e[0;36m  ℹ Would you like to run a full system update before continuing?\e[0m\n'
   printf '    \e[2m(sudo pacman -Syu)\e[0m\n'
   echo
-  read -rp $'  \e[2mRun system update? [y/N]\e[0m ' answer
+  read -rp $'  \e[2mRun system update? [y/N]\e[0m ' answer </dev/tty
   echo
   if [[ "$answer" =~ ^[Yy]$ ]]; then
     printf '\e[1m  Updating system...\e[0m\n'
