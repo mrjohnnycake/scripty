@@ -1,0 +1,18 @@
+
+
+Consult https://wiki.archlinux.org/title/KDE_Wallet and test out unlocking the wallet at login and some of the other options
+
+---------------------------
+
+Look into changing the End-4 config file via the command line using sed or something like that instead of replacing the whole file.
+The config will change as the creator sees fit so this way I can just change what I want and things I don't use can come and go and I should be okay as long as the variable names stay the same
+
+See if the SDDM choice (formal looking vs the End-4 version) can be changed in this file. If not, look thru things that are changed by Scripty because something in there is changing the SDDM page
+
+To make it easier, make changes in the End-4 GUI and then get the stock version of the config file and have Claude compare the edited version with the stock and write all the changed lines to a third file
+
+----------------------------
+
+Original End-4 files to get after installing AND BEFORE my dots
+- original End-4 config/settings file
+- original hypridle file

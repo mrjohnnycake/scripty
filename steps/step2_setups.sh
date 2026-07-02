@@ -23,6 +23,24 @@ source "$SCRIPT_DIR/../lib/installers.sh"
 deps::require_in_step "paru" "paru AUR helper" "Complete Step 1 first"
 
 
+
+
+
+
+
+
+#- Some of these commands are dependent on me setting up 1Password and Vivaldi and others
+#	- Two choices:
+#		- 1. Only re-run Script after I've already setup some apps (1Password, Vivaldi, etc.)
+#		- 2. Change the beginning of the step2 script to allow setup time by maybe using "Hit Enter to continue" sections so that I can complete an app setup before continuing
+
+
+
+
+
+
+
+
 # ── Vivaldi ──────────────────────────────────────────────────────
 ui::section "Setup Vivaldi and open default pages"
 
@@ -49,14 +67,24 @@ install::run_cmd \
 # ── Dotfiles ───────────────────────────────────────────────
 ui::section "Remove and replace existing dotfiles"
 
+
+
+
+
+
+- Check to make sure that these files exist before removing
+- Also make sure that if you are just adding one file to a config folder and not the whole directory that what you are adding via Stow is enough to run the app. If the app needs to be opened first before populating its config folder it might end up overwriting the stow file
+
+
+
+
+
+
 install::run_cmd \
   "Remove conflicting configs and stow Apps dotfiles?" \
   "Apps dotfiles" \
   'cd ~/Dotfiles/Desktop/Apps &&
-   rm -rf ~/.config/1Password/settings/settings.json &&
    rm -rf ~/.chirp &&
-   rm -rf ~/.config/dolphinrc &&
-   rm -rf ~/.local/share/user-places.xbel &&
    rm -rf ~/.config/equibop/settings &&
    rm -rf ~/.config/equibop/themes &&
    rm -rf ~/.config/equibop/settings.json &&
@@ -67,7 +95,6 @@ install::run_cmd \
    rm -rf ~/.config/haruna &&
    rm -rf ~/.config/katerc &&
    rm -rf ~/.config/kate-externaltoolspluginrc &&
-   rm -rf ~/.config/kitty &&
    rm -rf ~/.config/konversation.kmessagebox &&
    rm -rf ~/.config/konversation.notifyrc &&
    rm -rf ~/.config/konversationrc &&
@@ -75,21 +102,19 @@ install::run_cmd \
    rm -rf ~/.config/Numara/Local\ Storage &&
    rm -rf ~/.config/Numara/Session\ Storage &&
    rm -rf ~/.config/Numara/config &&
-   rm -rf ~/.config/obsidian/obsidian.json &&
    rm -rf ~/.config/pomodorolm/config.toml &&
-   rm -rf ~/.config/rofi &&
    rm -rf ~/.local/share/Shortwave/Shortwave.db &&
    rm -rf ~/.config/Signal/ephemeral.json &&
    rm -rf ~/.config/transmission &&
    rm -rf ~/.config/wgtray/config.toml &&
    rm -rf ~/.config/zoomus.conf &&
-   stow -t ~/ 1password chirp dolphin equibop feishin gramps haruna kate kitty konversation mqtt-explorer numara obsidian pomodorolm rofi shortwave signal transmission wgtray zoom'
+   stow -t ~/ chirp equibop feishin gramps haruna kate konversation mqtt-explorer numara pomodorolm shortwave signal transmission wgtray zoom'
    # stow -t ~/ newsflash
 
 install::run_cmd \
   "Stow downloads-folder script and enable its timer?" \
   "downloads-folder organizer" \
-  'cd ~/Dotfiles/Desktop/Hyprland-End4 &&
+  'cd ~/Dotfiles/Desktop/System &&
    stow -t ~/ systemd &&
    systemctl --user daemon-reload &&
    systemctl --user enable --now organize-downloads.timer'
@@ -166,21 +191,32 @@ install::run_cmd \
   "tealdeer cache update" \
   'tldr -u'
 
+
+
+
+# For KDE Wallet it's actually recommended to use the older blowfish file because the GPG version doesn't support unlocking the wallet at login. Leave this note here so I don't forget
+
+
+
+
+# delete ~/ii-original-dots-backup since it's from the first install on a fresh Hyprland system
+
+
+
+
 # NOTE: Verify each of these still exists on a fresh install before
 # enabling — package contents change between CachyOS/distro versions.
 install::run_cmd \
   "Remove unused .desktop entries?" \
   "Remove unused desktop entries" \
-  'sudo rm -f /usr/share/applications/assistant.desktop
-   sudo rm -f /usr/share/applications/designer.desktop
-   sudo rm -f /usr/share/applications/java-java-openjdk.desktop
-   sudo rm -f /usr/share/applications/jconsole-java-openjdk.desktop
-   sudo rm -f /usr/share/applications/jshell-java-openjdk.desktop
-   sudo rm -f /usr/share/applications/linguist.desktop
-   sudo rm -f /usr/share/applications/org.cachyos.scx-manager.desktop
-   sudo rm -f /usr/share/applications/qdbusviewer.desktop
-   sudo rm -f /usr/share/applications/qv4l2.desktop
-   sudo rm -f /usr/share/applications/qvidcap.desktop'
+  'sudo rm -f /usr/share/applications/assistant.desktop &&
+   sudo rm -f /usr/share/applications/bssh.desktop &&
+   sudo rm -f /usr/share/applications/bvnc.desktop &&
+   sudo rm -f /usr/share/applications/designer.desktop &&
+   sudo rm -f /usr/share/applications/linguist.desktop &&
+   sudo rm -f /usr/share/applications/lstopo.desktop
+   sudo rm -f /usr/share/applications/micro.desktop
+   sudo rm -f /usr/share/applications/qdbusviewer.desktop'
 
 ui::success "Housekeeping finished"
 

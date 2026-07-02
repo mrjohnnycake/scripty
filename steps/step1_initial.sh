@@ -194,18 +194,19 @@ ui::section "Dotfiles"
 install::run_cmd \
   "Copy SSH files over to \$HOME?" \
   "Copy SSH files" \
-  'sudo mkdir -p /media/usb &&
-   sudo mount UUID="2238-ADA8" /media/usb &&
-   cp -r /media/usb/Docs/.ssh &&
+  'cp -r /run/media/barkeep/Ventoy/Docs/.ssh ~/ &&
    chmod 600 ~/.ssh/* &&
    chmod 700 ~/.ssh'
+#sudo mkdir -p /media/usb
+#sudo mount UUID="2238-ADA8" /media/usb
 
 install::run_cmd \
   "Pull the Dotfiles repo to \$HOME?" \
   "Dotfiles repo download" \
-  'GIT_SSH_COMMAND="ssh -i /home/barkeep/.ssh/github-administrator" git clone git@github.com:mrjohnnycake/hyprland-dms-dots.git &&
-  mv ~/hyprland-dms-dots ~/Dotfiles'
-
+  'cp -r /run/media/barkeep/Ventoy/Docs/.gitignore ~/ &&
+   cd ~/ &&
+   GIT_SSH_COMMAND="ssh -i /home/barkeep/.ssh/github-administrator" git clone git@github.com:mrjohnnycake/hyprland-dms-dots.git &&
+   mv hyprland-dms-dots ~/Dotfiles'
 #install::run_cmd \
 #  "Copy Dotfiles folder to \$HOME?" \
 #  "Dotfiles placement" \
@@ -215,8 +216,24 @@ install::run_cmd \
   "Stow the first set of Linux dotfiles (git nvim rmw scripts superfile tealdeer zoxide)?" \
   "Linux dotfiles" \
   'cd ~/Dotfiles/Linux &&
-   rm -rf ~/.config/lazygit &&
-   stow -t ~/ fish git github-cli lazygit nvim rmw superfile tealdeer zoxide'
+   rm ~/.gitignore
+   rm -rf ~/.config/fish &&
+   stow -t ~/ fish git lazygit nvim rmw superfile tealdeer zoxide
+   mkdir ~/.config/fish/completions'
+
+
+# ── Home folder ──────────────────────────────────────────────────
+ui::section "Home folder setup"
+
+install::run_cmd \
+  "Replace home dirs with symlinks to /mnt/Homer?" \
+  "Home folder symlinks" \
+  'ln -s /mnt/Homer/Documents /home/"$USER"/Documents &&
+   ln -s /mnt/Homer/Downloads /home/"$USER"/Downloads &&
+   ln -s /mnt/Homer/Music /home/"$USER"/Music &&
+   ln -s /mnt/Homer/Pictures /home/"$USER"/Pictures &&
+   ln -s /mnt/Homer/Projects /home/"$USER"/Projects &&
+   ln -s /mnt/Homer/Videos /home/"$USER"/Videos'
 
 install::run_cmd \
   "Set up Syncthing and apply Stow configs?" \
@@ -224,14 +241,17 @@ install::run_cmd \
   'cd ~/Dotfiles/Desktop/Apps &&
    sudo systemctl enable --now syncthing@"$USER".service &&
    sleep 5 &&
+   sudo systemctl stop syncthing@"$USER".service &&
    rm "$HOME/.local/state/syncthing/config.xml" &&
-   stow -t ~/ syncthing'
+   rm "$HOME/.local/state/syncthing/config.xml.v0" &&
+   stow -t ~/ syncthing &&
+   sudo systemctl start syncthing@"$USER".service'
 
 
 # ── GitHub / manual installs ─────────────────────────────────────
 # Use install::run_cmd for anything that isn't pacman or AUR.
 # Each gets its own prompt so you can skip individually.
-ui::section "GitHub installs"
+ui::section "GitHub App Installs"
 
 install::run_cmd \
   "Install MQTT Explorer?" \
@@ -273,18 +293,10 @@ install::run_cmd \
 # ── Hyprland ─────────────────────────────────────────────
 ui::section "Hyprland Setup"
 
-#install::run_cmd \
-  #"Install hyprfocus plugin?" \
-  #"hyprfocus" \
-  #'hyprpm update
-  #hyprpm add https://github.com/daxisunder/hyprfocus
-  #hyprpm enable hyprfocus'
-
 install::run_cmd \
   "Install your personal Hyprland dotfiles?" \
   "Hyprland dotfiles" \
-  'cd "$HOME/Dotfiles/Desktop/Hyprland-End4" &&
-   rm "$HOME/.config/illogical-impulse/config.json" &&
+  'cd "$HOME/Dotfiles/Desktop/System" &&
    rm "$HOME/.config/hypr/hypridle.conf" &&
    rm "$HOME/.config/hypr/custom/env.lua" &&
    rm "$HOME/.config/hypr/custom/execs.lua" &&
@@ -292,7 +304,8 @@ install::run_cmd \
    rm "$HOME/.config/hypr/custom/keybinds.lua" &&
    rm "$HOME/.config/hypr/custom/rules.lua" &&
    rm "$HOME/.config/hypr/custom/variables.lua" &&
-   stow -t ~/ hyprland'
+   rm "$HOME/.config/gtk-3.0/bookmarks" &&
+   stow -t ~/ gtk hyprland-end4'
 
 install::run_cmd \
   "Comment out lines in End-4 Hyprland Configs?" \
@@ -311,26 +324,38 @@ install::run_cmd \
   'sudo mkdir -p /etc/1password &&
    echo "vivaldi" | sudo tee /etc/1password/custom_allowed_browsers &&
    sudo chown root:root /etc/1password/custom_allowed_browsers &&
-   sudo chmod 755 /etc/1password/custom_allowed_browsers'
+   sudo chmod 755 /etc/1password/custom_allowed_browsers &&
+   1password &
+   read -rp "Log into 1Password, leave it open, and then hit Enter here to continue..." &&
+   (killall 1password || true) &&
+   rm -rf ~/.config/1Password/settings/settings.json &&
+   cd ~/Dotfiles/Desktop/Apps &&
+   stow -t ~/ 1password'
+
+install::run_cmd \
+  "Set Dolphin, Kitty, and Rofi?" \
+  "Setting up various apps" \
+  'cd ~/Dotfiles/Desktop/Apps &&
+   rm -rf ~/.config/dolphinrc &&
+   rm -rf ~/.local/share/user-places.xbel &&
+   rm -rf ~/.config/kitty &&
+   rm -rf ~/.config/rofi &&
+   stow -t ~/ dolphin kitty rofi'
 
 install::run_cmd \
   "Launch Neovim to trigger plugin install?" \
   "Neovim first run" \
   'nvim'
 
-
-# ── Home folder ──────────────────────────────────────────────────
-ui::section "Home folder setup"
-
 install::run_cmd \
-  "Replace home dirs with symlinks to /mnt/Homer?" \
-  "Home folder symlinks" \
-  'sudo rm -rf /home/"$USER"/{Documents,Downloads,Music,Pictures,Projects,Public,Templates,Videos} &&
-  ln -s /mnt/Homer/Documents /home/"$USER"/Documents &&
-  ln -s /mnt/Homer/Downloads /home/"$USER"/Downloads &&
-  ln -s /mnt/Homer/Music /home/"$USER"/Music &&
-  ln -s /mnt/Homer/Pictures /home/"$USER"/Pictures &&
-  ln -s /mnt/Homer/Projects /home/"$USER"/Projects &&
-  ln -s /mnt/Homer/Videos /home/"$USER"/Videos'
+  "Setup Obsidian" \
+  "Setting up Obsidian" \
+  'obsidian &
+   sleep 5s &&
+   (killall obsidian || true) &&
+   rm -rf ~/.config/obsidian/obsidian.json &&
+   stow -t ~/ obsidian'
 
+
+# ── Script Exit and Reboot ──────────────────────────────────────────────────
 ui::success "Step 1 complete — system will reboot."

@@ -201,7 +201,7 @@ main::reset_menu() {
 }
 
 # ── Installer helper note ───────────────────────────────────────
-# Opens installer-helper.md in a new terminal window using kwrite so
+# Opens installer-helper.md in a new kitty window running nano so
 # it stays visible while you work through the menu.
 # Bash executes top-to-bottom and doesn't hoist function definitions,
 # so this must be defined before the Entry block below calls it.
@@ -212,7 +212,7 @@ main::open_helper() {
     return 0
   fi
 
-  kwrite "$helper" &
+  kitty -- nano "$helper" &
 }
 
 # ── Entry ──────────────────────────────────────────────────────

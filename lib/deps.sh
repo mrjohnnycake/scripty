@@ -12,7 +12,6 @@ _DEPS_REQUIRED=(
 
 _DEPS_OPTIONAL=(
   "jq|jq (better state management)|jq"
-  "kwrite|KWrite|kwrite"
 )
 
 # ── Check ────────────────────────────────────────────────────────
