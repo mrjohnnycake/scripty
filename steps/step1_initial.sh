@@ -216,10 +216,10 @@ install::run_cmd \
   "Stow the first set of Linux dotfiles (git nvim rmw scripts superfile tealdeer zoxide)?" \
   "Linux dotfiles" \
   'cd ~/Dotfiles/Linux &&
-   rm ~/.gitignore
+   rm ~/.gitconfig
    rm -rf ~/.config/fish &&
    stow -t ~/ fish git lazygit nvim rmw superfile tealdeer zoxide
-   mkdir ~/.config/fish/completions'
+   mkdir -p ~/.config/fish/completions'
 
 
 # ── Home folder ──────────────────────────────────────────────────
