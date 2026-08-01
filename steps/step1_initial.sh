@@ -203,7 +203,7 @@ install::run_cmd \
 install::run_cmd \
   "Pull the Dotfiles repo to \$HOME?" \
   "Dotfiles repo download" \
-  'cp -r /run/media/barkeep/Ventoy/Docs/.gitignore ~/ &&
+  'cp -r /run/media/barkeep/Ventoy/Docs/.gitconfig ~/ &&
    cd ~/ &&
    GIT_SSH_COMMAND="ssh -i /home/barkeep/.ssh/github-administrator" git clone git@github.com:mrjohnnycake/hyprland-dms-dots.git &&
    mv hyprland-dms-dots ~/Dotfiles'
