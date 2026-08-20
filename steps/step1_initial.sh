@@ -165,6 +165,22 @@ CORE_PKGS=(
 #   lua-language-server
 # )
 
+
+
+
+
+
+# Put this in somewhere next time you're looking at this
+
+curl -fsSL https://extremelabs.io/omacal/install.sh | sh
+
+
+
+
+
+
+
+
 install::pacman "Install core CachyOS repo packages?" "${CORE_PKGS[@]}"
 
 
@@ -173,7 +189,9 @@ ui::section "AUR packages"
 
 AUR_PKGS=(
   1password # only install method that works well, maintained by 1Password
+  android-messages-desktop-bin # haven't test installing an alternative way yet
   chirp-next # cloudflare blocks scraping so I'm unable to install it via script
+  meru-bin # haven't test installing an alternative way yet
   pomodorolm-bin # didn't work when installing via script but this package is maintained by the app author so no real worries as long as the app is still being developed
   #rmw
   #mqtt-explorer # installed via GitHub instead to lessen deps on AUR
@@ -304,7 +322,6 @@ install::run_cmd \
    rm "$HOME/.config/hypr/custom/keybinds.lua" &&
    rm "$HOME/.config/hypr/custom/rules.lua" &&
    rm "$HOME/.config/hypr/custom/variables.lua" &&
-   rm "$HOME/.config/gtk-3.0/bookmarks" &&
    stow -t ~/ gtk hyprland-end4'
 
 install::run_cmd \
